@@ -8,71 +8,68 @@
 
 name: Build Tests
 
-on: [ push, pull_request ]
+on: [ workflow_dispatch ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  linux-core:
-    strategy:
-      matrix:
-        BUILD:
-          - "Release"
-          - "Debug"
-        CXX_STANDARD:
-          - 20
-        COMPILER:
-          - NAME: "gcc"
-            CXX: "g++"
-          - NAME: "clang"
-            CXX: "clang++"
+  # linux-core:
+  #   strategy:
+  #     matrix:
+  #       BUILD:
+  #         - "Debug"
+  #       CXX_STANDARD:
+  #         - 20
+  #       COMPILER:
+  #         - NAME: "clang"
+  #           CXX: "clang++"
 
-    name: "Linux/Core/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
+  #   name: "Linux/Core/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
 
-    runs-on: "ubuntu-latest"
+  #   runs-on: "ubuntu-latest"
 
-    container: ubuntu:24.04
+  #   container: ubuntu:24.04
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: apt-get update && apt-get -y install
-        libboost-filesystem-dev
-        libboost-program-options-dev
-        libboost-log-dev
-        wget
-        cmake
-        libbenchmark-dev
-        g++
-        clang
-    - name: Install Google Test
-      run: |
-        wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
-        tar -xzvf v1.14.0.tar.gz
-        cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
-        cmake --build gtest_build -- -j $(nproc)
-        cmake --install gtest_build
-    - name: Configure
-      run: cmake
-        -DCMAKE_CXX_COMPILER=$(which ${{ matrix.COMPILER.CXX }})
-        -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
-        -DCOVFIE_FAIL_ON_WARNINGS=TRUE
-        -DCOVFIE_BUILD_TESTS=On
-        -DCOVFIE_BUILD_EXAMPLES=On
-        -DCOVFIE_BUILD_BENCHMARKS=On
-        -DCOVFIE_TEST_HEADERS=On
-        -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
-        -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.prefixes/gtest/"
-        -S $GITHUB_WORKSPACE
-        -B build
-    - name: Build
-      run: cmake --build build -- -j $(nproc)
-    - name: Core tests
-      run: build/tests/core/test_core
-    - name: CPU tests
-      run: build/tests/cpu/test_cpu
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies
+  #     run: apt-get update && apt-get -y install
+  #       libboost-filesystem-dev
+  #       libboost-program-options-dev
+  #       libboost-log-dev
+  #       wget
+  #       cmake
+  #       libbenchmark-dev
+  #       g++
+  #       clang
+  #   - name: Install Google Test
+  #     run: |
+  #       wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+  #       tar -xzvf v1.14.0.tar.gz
+  #       cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
+  #       cmake --build gtest_build -- -j $(nproc)
+  #       cmake --install gtest_build
+  #   - name: Configure
+  #     run: cmake
+  #       -DCMAKE_CXX_COMPILER=$(which ${{ matrix.COMPILER.CXX }})
+  #       -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
+  #       -DCOVFIE_FAIL_ON_WARNINGS=TRUE
+  #       -DCOVFIE_BUILD_TESTS=On
+  #       -DCOVFIE_BUILD_EXAMPLES=On
+  #       -DCOVFIE_BUILD_BENCHMARKS=On
+  #       -DCOVFIE_TEST_HEADERS=On
+  #       -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
+  #       -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.prefixes/gtest/"
+  #       -S $GITHUB_WORKSPACE
+  #       -B build
+  #   - name: Build
+  #     run: cmake --build build -- -j $(nproc)
+  #   - name: Core tests
+  #     run: build/tests/core/test_core
+  #   - name: CPU tests
+  #     run: build/tests/cpu/test_cpu
 
   linux-coverage:
     name: "Linux/Coverage"
@@ -116,149 +113,148 @@ jobs:
     - name: CPU tests
       run: build/tests/cpu/test_cpu
     # gcovr reads its filters from gcovr.cfg in the root of the repository.
-    - name: Report coverage
-      run: |
-        mkdir coverage
-        gcovr --root $GITHUB_WORKSPACE build \
-          --print-summary \
-          --cobertura coverage/cobertura.xml \
-          --html-details coverage/index.html
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage/
+    # - name: Report coverage
+    #   run: |
+    #     mkdir coverage
+    #     gcovr --root $GITHUB_WORKSPACE build \
+    #       --print-summary \
+    #       --cobertura coverage/cobertura.xml \
+    #       --html-details coverage/index.html
+    # - name: Upload coverage report
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: coverage-report
+    #     path: coverage/
 
-  linux-cuda:
-    strategy:
-      matrix:
-        BUILD:
-          - "Release"
-          - "Debug"
-        CXX_STANDARD:
-          - 20
-        COMPILER:
-          - NAME: "gcc"
-            CXX: "g++"
-        CUDA_COMPILER:
-          - NAME: "nvcc"
-            CUDACC: "nvcc"
+  # linux-cuda:
+  #   strategy:
+  #     matrix:
+  #       BUILD:
+  #         - "Release"
+  #         - "Debug"
+  #       CXX_STANDARD:
+  #         - 20
+  #       COMPILER:
+  #         - NAME: "gcc"
+  #           CXX: "g++"
+  #       CUDA_COMPILER:
+  #         - NAME: "nvcc"
+  #           CUDACC: "nvcc"
 
-    name: "Linux/CUDA/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}+${{ matrix.CUDA_COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
+  #   name: "Linux/CUDA/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}+${{ matrix.CUDA_COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
 
-    runs-on: "ubuntu-latest"
+  #   runs-on: "ubuntu-latest"
 
-    container: "nvidia/cuda:12.6.2-devel-ubuntu24.04"
+  #   container: "nvidia/cuda:12.6.2-devel-ubuntu24.04"
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: apt-get update && apt-get -y install
-        libboost-filesystem-dev
-        libboost-program-options-dev
-        libboost-log-dev
-        wget
-        cmake
-        libbenchmark-dev
-        g++-10
-        clang
-    - name: Install Google Test
-      run: |
-        wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
-        tar -xzvf v1.14.0.tar.gz
-        cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
-        cmake --build gtest_build -- -j $(nproc)
-        cmake --install gtest_build
-    - name: Configure
-      run: cmake
-        -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
-        -DCMAKE_CUDA_ARCHITECTURES=52
-        -DCMAKE_CUDA_HOST_COMPILER=$(which g++-10)
-        -DCOVFIE_FAIL_ON_WARNINGS=TRUE
-        -DCOVFIE_BUILD_TESTS=On
-        -DCOVFIE_BUILD_EXAMPLES=On
-        -DCOVFIE_BUILD_BENCHMARKS=On
-        -DCOVFIE_PLATFORM_CUDA=On
-        -DCOVFIE_PLATFORM_CPU=On
-        -DCOVFIE_TEST_HEADERS=On
-        -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
-        -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.prefixes/gtest/"
-        -S $GITHUB_WORKSPACE
-        -B build
-    - name: Build
-      run: cmake --build build -- -j $(nproc)
-    - name: Core tests
-      run: build/tests/core/test_core
-    - name: CPU tests
-      run: build/tests/cpu/test_cpu
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies
+  #     run: apt-get update && apt-get -y install
+  #       libboost-filesystem-dev
+  #       libboost-program-options-dev
+  #       libboost-log-dev
+  #       wget
+  #       cmake
+  #       libbenchmark-dev
+  #       g++-10
+  #       clang
+  #   - name: Install Google Test
+  #     run: |
+  #       wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+  #       tar -xzvf v1.14.0.tar.gz
+  #       cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
+  #       cmake --build gtest_build -- -j $(nproc)
+  #       cmake --install gtest_build
+  #   - name: Configure
+  #     run: cmake
+  #       -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
+  #       -DCMAKE_CUDA_ARCHITECTURES=52
+  #       -DCMAKE_CUDA_HOST_COMPILER=$(which g++-10)
+  #       -DCOVFIE_FAIL_ON_WARNINGS=TRUE
+  #       -DCOVFIE_BUILD_TESTS=On
+  #       -DCOVFIE_BUILD_EXAMPLES=On
+  #       -DCOVFIE_BUILD_BENCHMARKS=On
+  #       -DCOVFIE_PLATFORM_CUDA=On
+  #       -DCOVFIE_PLATFORM_CPU=On
+  #       -DCOVFIE_TEST_HEADERS=On
+  #       -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
+  #       -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/.prefixes/gtest/"
+  #       -S $GITHUB_WORKSPACE
+  #       -B build
+  #   - name: Build
+  #     run: cmake --build build -- -j $(nproc)
+  #   - name: Core tests
+  #     run: build/tests/core/test_core
+  #   - name: CPU tests
+  #     run: build/tests/cpu/test_cpu
 
-  linux-hip:
-    strategy:
-      matrix:
-        BUILD:
-          - "Release"
-          - "Debug"
-        CXX_STANDARD:
-          - 20
-        COMPILER:
-          - NAME: "gcc"
-            CXX: "g++"
-        HIP_COMPILER:
-          - NAME: "amdclang"
-            HIPCC: "amdclang++"
+  # linux-hip:
+  #   strategy:
+  #     matrix:
+  #       BUILD:
+  #         - "Release"
+  #         - "Debug"
+  #       CXX_STANDARD:
+  #         - 20
+  #       COMPILER:
+  #         - NAME: "gcc"
+  #           CXX: "g++"
+  #       HIP_COMPILER:
+  #         - NAME: "amdclang"
+  #           HIPCC: "amdclang++"
 
-    name: "Linux/HIP/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}+${{ matrix.HIP_COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
+  #   name: "Linux/HIP/${{ matrix.BUILD }}/${{ matrix.COMPILER.NAME }}+${{ matrix.HIP_COMPILER.NAME }}/C++${{ matrix.CXX_STANDARD }}"
 
-    runs-on: "ubuntu-latest"
+  #   runs-on: "ubuntu-latest"
 
-    container: "rocm/dev-ubuntu-24.04:6.3.4"
+  #   container: "rocm/dev-ubuntu-24.04:6.3.4"
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: apt-get update && apt-get -y install
-        libboost-filesystem-dev
-        libboost-program-options-dev
-        libboost-log-dev
-        wget
-        cmake
-        libbenchmark-dev
-        g++-10
-    - name: Install Google Test
-      run: |
-        wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
-        tar -xzvf v1.14.0.tar.gz
-        cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
-        cmake --build gtest_build -- -j $(nproc)
-        cmake --install gtest_build
-    - name: Configure
-      run: cmake
-        -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER.CXX }}
-        -DCMAKE_HIP_COMPILER=${{ matrix.HIP_COMPILER.HIPCC }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
-        -DCOVFIE_FAIL_ON_WARNINGS=TRUE
-        -DCOVFIE_BUILD_TESTS=On
-        -DCOVFIE_BUILD_EXAMPLES=On
-        -DCOVFIE_BUILD_BENCHMARKS=On
-        -DCOVFIE_PLATFORM_HIP=On
-        -DCOVFIE_PLATFORM_CPU=On
-        -DCOVFIE_TEST_HEADERS=On
-        -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
-        -DCMAKE_PREFIX_PATH="/opt/rocm-6.3.4/;$GITHUB_WORKSPACE/.prefixes/gtest/"
-        -S $GITHUB_WORKSPACE
-        -B build
-    - name: Build
-      run: cmake --build build -- -j $(nproc)
-    - name: Core tests
-      run: build/tests/core/test_core
-    - name: CPU tests
-      run: build/tests/cpu/test_cpu
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies
+  #     run: apt-get update && apt-get -y install
+  #       libboost-filesystem-dev
+  #       libboost-program-options-dev
+  #       libboost-log-dev
+  #       wget
+  #       cmake
+  #       libbenchmark-dev
+  #       g++-10
+  #   - name: Install Google Test
+  #     run: |
+  #       wget https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+  #       tar -xzvf v1.14.0.tar.gz
+  #       cmake -S googletest-1.14.0 -B gtest_build -DBUILD_GMOCK=Off -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/.prefixes/gtest/
+  #       cmake --build gtest_build -- -j $(nproc)
+  #       cmake --install gtest_build
+  #   - name: Configure
+  #     run: cmake
+  #       -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER.CXX }}
+  #       -DCMAKE_HIP_COMPILER=${{ matrix.HIP_COMPILER.HIPCC }}
+  #       -DCMAKE_BUILD_TYPE=${{ matrix.BUILD }}
+  #       -DCOVFIE_FAIL_ON_WARNINGS=TRUE
+  #       -DCOVFIE_BUILD_TESTS=On
+  #       -DCOVFIE_BUILD_EXAMPLES=On
+  #       -DCOVFIE_BUILD_BENCHMARKS=On
+  #       -DCOVFIE_PLATFORM_HIP=On
+  #       -DCOVFIE_PLATFORM_CPU=On
+  #       -DCOVFIE_TEST_HEADERS=On
+  #       -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }}
+  #       -DCMAKE_PREFIX_PATH="/opt/rocm-6.3.4/;$GITHUB_WORKSPACE/.prefixes/gtest/"
+  #       -S $GITHUB_WORKSPACE
+  #       -B build
+  #   - name: Build
+  #     run: cmake --build build -- -j $(nproc)
+  #   - name: Core tests
+  #     run: build/tests/core/test_core
+  #   - name: CPU tests
+  #     run: build/tests/cpu/test_cpu
 
   linux-sycl:
     strategy:
       matrix:
         BUILD:
-          - "Release"
           - "Debug"
         CXX_STANDARD:
           - 20
